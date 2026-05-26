@@ -1,0 +1,41 @@
+1. ADIM: Bağımlılıkları Yönetmek (pom.xml)
+Ne yaptık? Projenin kalbi olan pom.xml dosyasında Spring Web, Data JPA, Validation ve H2 Database kütüphanelerini tanımladık. Araya sızan hatalı/hayalet bir bağımlılığı temizleyip Maven'ı güncelledik.
+
+Neden yaptık? Spring Boot'un bize sunduğu hazır nimetleri (veritabanı bağlantısı, web istekleri, veri doğrulama) projeye dahil etmek için. Maven bağımlılıkları doğru olmazsa proje daha en baştan derlenmez ve ayağa kalkmaz.
+
+2. ADIM: Veritabanı Modelini Oluşturmak (Product.java)
+Ne yaptık? Sınıfın üzerine @Entity ve @Table anotasyonlarını koyduk. id, name ve price değişkenlerini tanımlayıp @Id ve @GeneratedValue ile birincil anahtar (Primary Key) kurguladık.
+
+Neden yaptık? Java tarafındaki bu sınıfın, veritabanında (H2) otomatik olarak PRODUCT adında bir tabloya dönüşmesini sağlamak için. @Entity sayesinde Spring'e "Bu sınıf sadece sıradan bir kod bloğu değil, veritabanındaki bir tablonun aynasıdır" demiş olduk.
+
+3. ADIM: Veritabanı Sorgu Motorunu Kurmak (ProductRepository.java)
+Ne yaptık? JpaRepository<Product, Long> arayüzünü (interface) genişleten (extends) boş bir interface tanımladık.
+
+Neden yaptık? Veritabanına veri kaydetmek (save), silmek (deleteById), listelemek (findAll) veya bulmak (findById) için tek tek SQL sorgusu yazmamak için. Spring Data JPA, bu interface sayesinde arkada bizim yerimize tüm SQL sorgularını otomatik üretir.
+
+4. ADIM: Test Verisi Üretmek (DataLoader.java)
+Ne yaptık? CommandLineRunner arayüzünü uygulayan (implements) ve üzerinde @Component olan bir sınıf yazıp, içine productRepository.save() metotlarıyla Laptop, Telefon ve Klavye ekledik.
+
+Neden yaptık? Proje her ayağa kalktığında veritabanı boş olmasın, elimizde test edebileceğimiz hazır veriler otomatik olarak yüklensin diye.
+
+5. ADIM: İş Mantığı Katmanını Kurmak (ProductService.java)
+Ne yaptık? Üzerine @Service anotasyonu koyduğumuz bir sınıf oluşturduk. İçine Constructor Injection (Bağımlılık Enjeksiyonu) ile ProductRepository'yi bağladık ve tüm CRUD metotlarını (getir, kaydet, sil) buraya yazdık.
+
+Neden yaptık? Katmanlı Mimari (Layered Architecture) kuralına uymak için. Kurumsal mimaride Controller katmanı doğrudan veritabanına dokunmaz. Araya bir "iş yöneticisi" yani Service katmanı konur. Yarın bir gün "Fiyatı 0'dan küçük olan ürünü kaydetme" veya "Kullanıcı rolünü kontrol et" gibi bir iş kuralı (business logic) geldiğinde yazılacağı tek yer burasıdır.
+
+6. ADIM: Dış Dünyaya Kapıları Açmak (ProductController.java)
+Ne yaptık? Üzerine @RestController ve @RequestMapping("/api/products") koyduğumuz sınıfta HTTP metotlarını eşledik (@GetMapping, @PostMapping, @PutMapping, @DeleteMapping). Service katmanını buraya enjekte edip gelen istekleri servise yönlendirdik.
+
+Neden yaptık? Postman veya tarayıcı gibi dış dünyadaki istemcilerin bizim uygulamamıza ulaşabilmesi için. Controller, projenin "resepsiyonistidir". Gelen HTTP isteklerini karşılar, ne istendiğini anlar (ekleme mi, silme mi?), işi Service katmanına yaptırır ve sonucu istemciye (ResponseEntity ile HTTP durum kodlarıyla birlikte) geri döner.
+
+7. ADIM: Güvenlik Duvarı ve Kapı Şablonları (DTO ve @Valid)
+Ne yaptık? ProductRequestDTO ve ProductResponseDTO sınıflarını açtık. Giriş şablonuna @NotBlank ve @Positive validasyonları koyduk. Controller'da bu isteklerin başına @Valid ekledik. ProductMapper ile de bu sınıfları asıl modelimize dönüştürdük.
+
+Neden yaptık? Veritabanı modelimizi dış dünyadan gizlemek ve içeriye kötü/hatalı veri sızmasını engellemek için. Postman'den bilerek hatalı veri gönderdiğimizde aldığımız 400 Bad Request yanıtı, bu güvenlik duvarının başarıyla çalıştığını ispatladı. (Sınavda kodlaması çıkmayacak olsa bile, mantığı budur).
+
+💡 Sınav İçin Akılda Kalması Gereken Altın Kural (Akış):
+Bir istek geldiğinde ve yanıt döndüğünde izlenen yol her zaman şudur:
+İstemci (Postman) ➡️ Controller ➡️ Service ➡️ Repository ➡️ Veritabanı (H2)
+
+Dönüş yolu da tam tersidir:
+Veritabanı (H2) ➡️ Repository ➡️ Service ➡️ Controller ➡️ İstemci (Postman)
