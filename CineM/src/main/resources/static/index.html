@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineM — Atmosferik Film Arşivi</title>
+    <meta name="description" content="Mustafa Karakoyun tarafından tasarlanmış, Don Norman ilkelerine uygun sinematik film ve atmosfer veritabanı.">
+    <link rel="canonical" href="http://localhost:8080/">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesk:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- DESIGN SYSTEM & TOKENS --- */
+        :root {
+            --bg-main: #0b0c10;
+            --bg-surface: #13151c;
+            --bg-surface-glow: #1c1e27;
+            --accent: #e50914;
+            --accent-glow: rgba(229, 9, 20, 0.25);
+            --text-primary: #f5f5f7;
+            --text-secondary: #9ea3b0;
+            --text-muted: #626773;
+            --font-display: 'Bricolage Grotesk', sans-serif;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --transition: cubic-bezier(0.16, 1, 0.3, 1) 0.4s;
+        }
+
+        /* --- RESET & FOUNDATION --- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            letter-spacing: -0.01em;
+            line-height: 1.5;
+        }
+
+        /* --- THE APEX: DISTINCTIVE TOP BANNER --- */
+        .cinema-header {
+            padding: 2.5rem 2rem 1.5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            border-bottom: 1px solid var(--bg-surface);
+        }
+
+        .brand-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .brand-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        .brand-title span {
+            color: var(--accent);
+        }
+
+        .brand-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        /* --- THE UNFORGETTABLE MOMENT: TOP RATED SHOWCASE --- */
+        .showcase-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .section-headline {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-headline::after {
+            content: '';
+            height: 1px;
+            flex-grow: 1;
+            background: linear-gradient(90deg, var(--bg-surface-glow), transparent);
+        }
+
+        .top-showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 992px) {
+            .top-showcase-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 576px) {
+            .top-showcase-grid { grid-template-columns: 1fr; }
+        }
+
+        .showcase-item {
+            background: var(--bg-surface);
+            border: 1px solid rgba(255,255,255,0.03);
+            padding: 1.25rem;
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .showcase-item:hover {
+            transform: translateY(-4px);
+            background: var(--bg-surface-glow);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px var(--accent-glow);
+        }
+
+        .showcase-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(229, 9, 20, 0.1);
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 2px;
+        }
+
+        .showcase-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- ASYMMETRIC CORE LAYOUT --- */
+        .workspace {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 2.5rem;
+        }
+
+        @media (max-width: 992px) {
+            .workspace { grid-template-columns: 1fr; }
+        }
+
+        /* --- LEFT COLUMN: MANIFESTO & INTERACTIVE FORM --- */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .panel-card {
+            background-color: var(--bg-surface);
+            padding: 2rem;
+            border-radius: 4px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .form-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .input-group {
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            background: var(--bg-main);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 0.85rem 1rem;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus-visible, .input-group select:focus-visible {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .btn-action {
+            width: 100%;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 1rem;
+            font-family: var(--font-sans);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 0.5rem;
+        }
+
+        .btn-action:hover {
+            background: #b8070f;
+            box-shadow: 0 5px 20px rgba(229, 9, 20, 0.4);
+        }
+
+        /* --- RIGHT COLUMN: SINISTER FILM STREAM --- */
+        .content-stream {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .search-bar-container {
+            display: flex;
+            gap: 1rem;
+            background: var(--bg-surface);
+            padding: 0.75rem;
+            border-radius: 4px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            padding: 0.5rem 1rem;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+        }
+
+        .mood-filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-pill {
+            background: var(--bg-surface);
+            border: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-secondary);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-pill:hover, .filter-pill.active {
+            background: var(--text-primary);
+            color: var(--bg-main);
+            border-color: var(--text-primary);
+        }
+
+        /* --- THE MOVIE STRIP (ROW PATTERN) --- */
+        .movie-strip {
+            background: var(--bg-surface);
+            border: 1px solid rgba(255,255,255,0.02);
+            border-radius: 4px;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .movie-strip:hover {
+            background: var(--bg-surface-glow);
+            border-color: rgba(255,255,255,0.08);
+            padding-left: 2.5rem; /* Micro-interaction: slide effect */
+        }
+
+        .strip-meta-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            max-width: 70%;
+        }
+
+        .strip-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            letter-spacing: -0.01em;
+        }
+
+        .strip-sub {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .strip-sub span {
+            color: var(--text-muted);
+            margin: 0 0.5rem;
+        }
+
+        .strip-interactive-block {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .strip-rating {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: var(--transition);
+        }
+
+        .btn-delete:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(229, 9, 20, 0.05);
+        }
+
+        /* --- SKELETON FEEDBACK LOADER --- */
+        .loader-shimmer {
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="cinema-header">
+        <div class="brand-block">
+            <h1 class="brand-title">Cine<span>M</span></h1>
+            <div class="brand-subtitle">Mustafa'nın Atmosfer Arşivi</div>
+        </div>
+    </header>
+
+    <section class="showcase-container">
+        <h2 class="section-headline">Sinematik Zirve (Top 5)</h2>
+        <div class="top-showcase-grid" id="topRatedContainer">
+            </div>
+    </section>
+
+    <main class="workspace">
+        
+        <aside class="control-panel">
+            <div class="panel-card">
+                <h3 class="form-title" id="formActionTitle">Arşive Film Ekle</h3>
+                <form id="movieForm">
+                    <input type="hidden" id="movieId">
+                    
+                    <div class="input-group">
+                        <label Lyyfor="movieTitle">Film Adı</label>
+                        <input type="text" id="movieTitle" required placeholder="Örn: Memento">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="movieDirector">Yönetmen</label>
+                        <input type="text" id="movieDirector" required placeholder="Örn: Christopher Nolan">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="movieCategory">Atmosfer / Kategori</label>
+                        <select id="movieCategory" required>
+                            <option value="Siberpunk">Siberpunk</option>
+                            <option value="Melankolik">Melankolik</option>
+                            <option value="Bilim Kurgu">Bilim Kurgu</option>
+                            <option value="Romantik">Romantik</option>
+                            <option value="Kara Film">Kara Film</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="movieRating">Puan (0.0 - 10.0)</label>
+                        <input type="number" id="movieRating" required min="0" max="10" step="0.1" placeholder="Örn: 8.5">
+                    </div>
+
+                    <button type="submit" class="btn-action" id="submitBtn">Arşive İşle</button>
+                    <button type="button" class="btn-action" id="cancelEditBtn" style="background: var(--bg-surface-glow); margin-top: 0.5rem; display: none;">Vazgeç</button>
+                </form>
+            </div>
+        </aside>
+
+        <section class="content-stream">
+            
+            <div class="search-bar-container">
+                <input type="text" class="search-input" id="searchBar" placeholder="Arşivde harfe veya isme göre ara...">
+            </div>
+
+            <div class="mood-filters">
+                <button class="filter-pill active" onclick="filterByMood('HEPSİ', this)">Tüm Atmosferler</button>
+                <button class="filter-pill" onclick="filterByMood('Siberpunk', this)">Siberpunk</button>
+                <button class="filter-pill" onclick="filterByMood('Melankolik', this)">Melankolik</button>
+                <button class="filter-pill" onclick="filterByMood('Bilim Kurgu', this)">Bilim Kurgu</button>
+                <button class="filter-pill" onclick="filterByMood('Romantik', this)">Romantik</button>
+                <button class="filter-pill" onclick="filterByMood('Kara Film', this)">Kara Film</button>
+            </div>
+
+            <div id="movieStream">
+                <div class="loader-shimmer">Arşiv taranıyor...</div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = "/api/movies";
+        const movieStream = document.getElementById("movieStream");
+        const topRatedContainer = document.getElementById("topRatedContainer");
+        const movieForm = document.getElementById("movieForm");
+        
+        // Input Elements
+        const movieIdInput = document.getElementById("movieId");
+        const movieTitleInput = document.getElementById("movieTitle");
+        const movieDirectorInput = document.getElementById("movieDirector");
+        const movieCategoryInput = document.getElementById("movieCategory");
+        const movieRatingInput = document.getElementById("movieRating");
+        const submitBtn = document.getElementById("submitBtn");
+        const formActionTitle = document.getElementById("formActionTitle");
+        const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadAllMovies();
+            loadTopRated();
+            
+            // Real-time Search Handler
+            document.getElementById("searchBar").addEventListener("input", (e) => {
+                const value = e.target.value.trim();
+                if(value.length > 0) {
+                    searchMovies(value);
+                } else {
+                    loadAllMovies();
+                }
+            });
+        });
+
+        // FETCH: LOAD ALL
+        async function loadAllMovies() {
+            try {
+                const res = await fetch(API_BASE);
+                const data = await res.json();
+                renderStream(data);
+            } catch (err) {
+                movieStream.innerHTML = `<div class="loader-shimmer" style="color: var(--accent)">Sistem ucu okunamadı.</div>`;
+            }
+        }
+
+        // FETCH: TOP RATED (SHOWCASE)
+		// FETCH: TOP RATED (SHOWCASE WITH POSTER)
+		async function loadTopRated() {
+		    try {
+		        const res = await fetch(`${API_BASE}/top-rated`);
+		        const data = await res.json();
+		        
+		        // Tüm filmler için afiş URL'lerini eş zamanlı (paralel) çözümlüyoruz
+		        const moviesWithPosters = await Promise.all(data.map(async (movie) => {
+		            const posterUrl = await getPosterUrl(movie.title);
+		            return { ...movie, posterUrl };
+		        }));
+
+		        topRatedContainer.innerHTML = moviesWithPosters.map((movie, index) => `
+		            <div class="showcase-item" onclick="populateFormForEdit(${JSON.stringify(movie).restoreQuotes()})" style="display: flex; flex-direction: column; gap: 0.5rem;">
+		                <span class="showcase-badge">#${index + 1}</span>
+		                <img src="${movie.posterUrl}" alt="${movie.title}" style="width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+		                <h3 class="showcase-title" style="margin-top: 0.5rem;">${movie.title}</h3>
+		                <p style="font-size: 0.8rem; color: var(--text-secondary);">${movie.category}</p>
+		                <p style="font-size: 0.9rem; font-weight: 700; color: var(--accent);">★ ${movie.rating}</p>
+		            </div>
+		        `).join('');
+		    } catch (err) {
+		        topRatedContainer.innerHTML = `<div class="loader-shimmer">Vitrin yüklenemedi.</div>`;
+		    }
+		}
+
+        // FETCH: ATMOSPHERIC FILTER
+        async function filterByMood(mood, pill) {
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            
+            if(mood === 'HEPSİ') {
+                loadAllMovies();
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/category/${mood}`);
+                const data = await res.json();
+                renderStream(data);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // FETCH: SEARCH
+        async function searchMovies(query) {
+            try {
+                const res = await fetch(`${API_BASE}/search?title=${query}`);
+                const data = await res.json();
+                renderStream(data);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // RENDER CORE STREAM PATTERN
+		// RENDER CORE STREAM PATTERN (WITH POSTERS)
+		async function renderStream(movies) {
+		    if(movies.length === 0) {
+		        movieStream.innerHTML = `<div class="loader-shimmer">Bu filtreye uygun atmosfer bulunamadı.</div>`;
+		        return;
+		    }
+
+		    // Akıştaki her film için afişleri alıyoruz
+		    const moviesWithPosters = await Promise.all(movies.map(async (movie) => {
+		        const posterUrl = await getPosterUrl(movie.title);
+		        return { ...movie, posterUrl };
+		    }));
+
+		    movieStream.innerHTML = moviesWithPosters.map(movie => `
+		        <div class="movie-strip" style="display: flex; align-items: center; gap: 1.5rem;">
+		            <img src="${movie.posterUrl}" alt="${movie.title}" style="width: 50px; height: 75px; object-fit: cover; border-radius: 2px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">
+		            
+		            <div class="strip-meta-block" onclick='populateFormForEdit(${JSON.stringify(movie).replace(/'/g, "&apos;")})' style="cursor:pointer; flex-grow: 1;">
+		                <h3 class="strip-title">${movie.title}</h3>
+		                <p class="strip-sub">${movie.director} <span>•</span> ${movie.category}</p>
+		            </div>
+		            <div class="strip-interactive-block">
+		                <div class="strip-rating">${movie.rating.toFixed(1)}</div>
+		                <button class="btn-delete" onclick="deleteMovie(${movie.id}, event)" aria-label="Arşivden Sil">
+		                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+		                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+		                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+		                    </svg>
+		                </button>
+		            </div>
+		        </div>
+		    `).join('');
+		}
+        // FORM SUBMIT: CREATE OR UPDATE
+        movieForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const id = movieIdInput.value;
+            const payload = {
+                title: movieTitleInput.value,
+                director: movieDirectorInput.value,
+                category: movieCategoryInput.value,
+                rating: parseFloat(movieRatingInput.value)
+            };
+
+            const url = id ? `${API_BASE}/${id}` : API_BASE;
+            const method = id ? "PUT" : "POST";
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if(res.ok) {
+                    movieForm.reset();
+                    resetFormState();
+                    loadAllMovies();
+                    loadTopRated();
+                }
+            } catch (err) {
+                alert("İşlem başarısız.");
+            }
+        });
+
+        // FETCH: DELETE
+        async function deleteMovie(id, event) {
+            event.stopPropagation(); // Prevents triggers on parent row
+            if(!confirm("Bu atmosferik eseri arşivden kalıcı olarak silmek istediğinize emin misiniz?")) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+                if(res.ok) {
+                    loadAllMovies();
+                    loadTopRated();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // UX HELPER: PRE-POPULATE FORM FOR EDITING
+        function populateFormForEdit(movie) {
+            formActionTitle.innerText = "Atmosferi Güncelle";
+            submitBtn.innerText = "Değişiklikleri İşle";
+            cancelEditBtn.style.display = "block";
+            
+            movieIdInput.value = movie.id;
+            movieTitleInput.value = movie.title;
+            movieDirectorInput.value = movie.director;
+            movieCategoryInput.value = movie.category;
+            movieRatingInput.value = movie.rating;
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        cancelEditBtn.addEventListener("click", () => {
+            movieForm.reset();
+            resetFormState();
+        });
+
+        function resetFormState() {
+            formActionTitle.innerText = "Arşive Film Ekle";
+            submitBtn.innerText = "Arşive İşle";
+            cancelEditBtn.style.display = "none";
+            movieIdInput.value = "";
+        }
+
+        String.prototype.restoreQuotes = function() {
+            return this.replace(/&apos;/g, "'");
+        };
+		async function getPosterUrl(movieTitle) {
+		    const API_KEY = "35f686175426eaf71ed63fb7672515c4";
+		    try {
+		        const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(movieTitle)}&language=tr-TR`);
+		        const data = await res.json();
+		        if (data.results && data.results.length > 0 && data.results[0].poster_path) {
+		            return `https://image.tmdb.org/t/p/w500${data.results[0].poster_path}`;
+		        }
+		    } catch (err) {
+		        console.error("Afiş çekilemedi:", err);
+		    }
+		    return "https://via.placeholder.com/500x750?text=No+Poster"; // Afiş bulunamazsa boş şablon
+		}
+    </script>
+</body>
+</html>
