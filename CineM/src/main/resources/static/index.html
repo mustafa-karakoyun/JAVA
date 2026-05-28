@@ -677,7 +677,7 @@
             return this.replace(/&apos;/g, "'");
         };
 		async function getPosterUrl(movieTitle) {
-		    const API_KEY = "35f686175426eaf71ed63fb7672515c4";
+		    const TMDB_API_KEY = "BURAYA_KENDİ_API_KEYİNİZİ_YAPIŞTIRIN";
 		    try {
 		        const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(movieTitle)}&language=tr-TR`);
 		        const data = await res.json();
