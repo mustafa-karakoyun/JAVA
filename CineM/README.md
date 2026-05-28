@@ -4,6 +4,8 @@ Mustafa Karakoyun tarafından, Spring Boot katmanlı mimarisi ve Don Norman'ın 
 
 Proje; backend katmanında veri bütünlüğü ve performansı, frontend katmanında ise asimetrik görsel gerilim ve "keşfedilebilir" mikro etkileşimleri (`Micro-interactions`) ön planna tutar.
 
+<img width="1920" height="1535" alt="cineM" src="https://github.com/user-attachments/assets/ad014f08-6850-40d6-bd8c-a8a9331ef232" />
+
 ---
 
 ## 💎 Öne Çıkan Özellikler & Tasarım Kararları
