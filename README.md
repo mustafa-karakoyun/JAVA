@@ -16,6 +16,10 @@ Bu depo, bağımsız olarak çalışan iki farklı Spring Boot projesini barınd
 - **Öne Çıkanlar:** CRUD operasyonları, Spring Web bileşenleri ve temel JPA veri tabanı ilişkileri.
 - **Detaylı İnceleme:** Projenin detayları ve API uç noktaları için [Demo README İncele](./demo/Readme.md) sayfasına göz atın.
 
+### 3. [Football Card Data Engine ⚽](./footbolcard)
+- **Kısa Açıklama:** Spring Boot JPA altyapısıyla desteklenen, siber-endüstriyel ve karanlık mod odaklı modern bir arayüze sahip gelişmiş futbolcu kartı yönetim ve analitik motorudur.
+- **Öne Çıkanlar:** Jakarta Validation veri koruması, otomatik veri besleme (Data Seeding), isimle akıllı canlı arama, kulübe/ülkeye göre filtreleme ve özel JPQL sorgusuyla dinamik yaş ortalaması hesaplama.
+- **Detaylı İnceleme:** Projeyi çalıştırmak ve hazır Postman koleksiyonunu incelemek için [Football Card README İncele](./FootballCards/README.md) sayfasına göz atın.
 ---
 
 ## 🛠️ Genel Teknolojik Altyapı
