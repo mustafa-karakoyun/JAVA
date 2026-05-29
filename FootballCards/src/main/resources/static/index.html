@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>FCManager — Profesyonel Futbolcu Kartı ve Analitik Yönetimi</title>
+    <meta name="description" content="Gelişmiş futbolcu kartı yönetim ve analitik sistemi. Kulüp yaş ortalamaları, reyting filtreleri ve gerçek zamanlı oyuncu veritabanı paneli.">
+    <link rel="canonical" href="http://localhost:8080/index.html">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://localhost:8080/index.html">
+    <meta property="og:title" content="FCManager — Profesyonel Futbolcu Kartı Analitiği">
+    <meta property="og:description" content="Gelişmiş futbolcu kartı yönetim ve analitik sistemi.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1200">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FCManager — Profesyonel Futbolcu Kartı Analitiği">
+    <meta name="twitter:description" content="Gelişmiş futbolcu kartı yönetim ve analitik sistemi.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Industrial / Dark Moody Palette */
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #121216;
+            --bg-surface: #1a1a22;
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --accent: #00ff66; /* Sharp Cyber Green */
+            --accent-dim: rgba(0, 255, 102, 0.1);
+            --border: #27272a;
+            --border-focus: #52525b;
+            --error: #ef4444;
+            --success: #10b981;
+            
+            --font-display: 'Syne', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Temel Reset ve Düzen Ayarları */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            padding: 2rem 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Tipografi Kuralları */
+        h1 {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            line-height: 0.9;
+            letter-spacing: -0.04em;
+            text-transform: uppercase;
+            margin-bottom: 2.5rem;
+            text-wrap: balance;
+            border-left: 6px solid var(--accent);
+            padding-left: 1rem;
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+        }
+
+        p {
+            max-width: 65ch;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Asimetrik Ana Düzen Layout */
+        .dashboard-grid {
+            display: block;
+        }
+
+        @media (min-width: 1024px) {
+            .dashboard-grid {
+                display: table;
+                width: 100%;
+                table-layout: fixed;
+                border-collapse: separate;
+                border-spacing: 2rem 0;
+            }
+            .sidebar-panel {
+                display: table-cell;
+                width: 400px;
+                vertical-align: top;
+            }
+            .main-panel {
+                display: table-cell;
+                vertical-align: top;
+            }
+        }
+
+        /* Panel Stilleri (Kılavuz: Tek tip yuvarlatılmış köşeler yerine endüstriyel keskinlik) */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .panel::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            right: -1px;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid var(--accent);
+            border-right: 2px solid var(--accent);
+        }
+
+        /* Form Elemanları — Visible Labels & Feedback */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.8rem 1rem;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Buton Stilleri — Touch targets 44px min */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--text-primary);
+            padding: 0.8rem 1.5rem;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            min-height: 44px;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: transparent;
+            color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-dim);
+        }
+
+        .btn-secondary {
+            border-color: var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+        }
+
+        /* Canlı Filtre ve Arama Araç Çubuğu */
+        .toolbar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 1.2rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .toolbar {
+                grid-template-columns: 2fr 1fr 1fr;
+            }
+        }
+
+        /* Kart Listesi ve Dinamik Asimetrik Futbol Kartı Tasarımı */
+        .cards-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .cards-container { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 1200px) {
+            .cards-container { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .player-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .player-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .card-header-zone {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .overall-badge {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            line-height: 1;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .meta-zone {
+            text-align: right;
+        }
+
+        .player-age {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .card-body-zone {
+            padding: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .player-name {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            line-height: 1.1;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.01em;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-actions-zone {
+            padding: 1rem 1.5rem;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .card-actions-zone .btn {
+            padding: 0.4rem 1rem;
+            min-height: 34px;
+            font-size: 0.75rem;
+        }
+
+        /* Bilgi / İstatistik Ekranı Widget'ı */
+        .analytics-widget {
+            background: var(--accent-dim);
+            border: 1px solid var(--accent);
+            padding: 1.2rem;
+            margin-top: 1.5rem;
+        }
+
+        .analytics-widget h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        /* Toast Bildirim Sistemi */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: var(--bg-surface);
+            border-left: 4px solid var(--accent);
+            padding: 1rem 1.5rem;
+            margin-top: 0.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "FCManager",
+      "url": "http://localhost:8080/index.html",
+      "description": "Profesyonel futbolcu kartı veri analitiği ve yönetim sistemi paneli.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "All"
+    }
+    </script>
+</head>
+<body>
+
+    <header>
+        <h1>Football Card<br>Data Engine</h1>
+        <p style="margin-bottom: 2.5rem;">Spring Boot JPA altyapısıyla desteklenen endüstriyel futbol veri yönetim motoru. Kartları filtreleyin, kulüp yaş ortalamalarını hesaplayın ve sistem kaynaklarını gerçek zamanlı izleyin.</p>
+    </header>
+
+    <main class="dashboard-grid">
+        
+        <section class="sidebar-panel">
+            <div class="panel">
+                <h2>Kart Oluştur / Düzenle</h2>
+                <form id="cardForm" autocomplete="off">
+                    <input type="hidden" id="cardId">
+                    
+                    <div class="form-group">
+                        <label for="fullName">Futbolcu Tam Adı</label>
+                        <input type="text" id="fullName" class="form-control" placeholder="Örn: Erling Haaland" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="age">Yaş</label>
+                            <input type="number" id="age" class="form-control" placeholder="25" required min="15" max="50">
+                        </div>
+                        <div class="form-group">
+                            <label for="overall">Reyting (OVR)</label>
+                            <input type="number" id="overall" class="form-control" placeholder="91" required min="0" max="100">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nation">Uyruk / Ülke</label>
+                        <input type="text" id="nation" class="form-control" placeholder="Örn: Norway" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="club">Mevcut Kulüp</label>
+                        <input type="text" id="club" class="form-control" placeholder="Örn: Manchester City" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Kayıt Motorunu Çalıştır</button>
+                    <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display: none; margin-top: 0.5rem;">Düzenlemeyi İptal Et</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h2>Kulüp Analitik Motoru</h2>
+                <p style="margin-bottom: 1rem; font-size: 0.85rem;">Veritabanındaki kulübe ait tüm oyuncuların yaş ortalamasını dinamik hesaplar.</p>
+                <div class="form-group">
+                    <label for="analytisClubName">Kulüp İsmi</label>
+                    <input type="text" id="analytisClubName" class="form-control" placeholder="Örn: Real Madrid">
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="fetchAverageAge()">Ortalama Yaşı Hesapla</button>
+                
+                <div class="analytics-widget" id="analyticsResult" style="display: none;">
+                    <h3>Hesaplama Sonucu</h3>
+                    <div id="analyticsOutput">--</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="main-panel">
+            
+            <div class="toolbar">
+                <input type="text" id="searchName" class="form-control" placeholder="İsme göre canlı arama..." oninput="searchCards()">
+                
+                <select id="filterMode" class="form-control" onchange="applyQuickFilter()">
+                    <option value="ALL">Tüm Kartları Listele</option>
+                    <option value="TOP">En Yüksek Reytingler (85+)</option>
+                    <option value="TURKEY">Türkiye Uyruklular</option>
+                    <option value="REAL">Real Madrid Oyuncuları</option>
+                </select>
+
+                <button class="btn btn-secondary" onclick="loadAllCards()">Yenile</button>
+            </div>
+
+            <div class="cards-container" id="cardsContainer">
+                </div>
+        </section>
+    </main>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API_BASE_URL = '/api/v1/cards';
+
+        document.getElementById('cardForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveCard();
+        });
+
+        // Tüm Verileri Sunucudan Çekme
+        async function loadAllCards() {
+            try {
+                const response = await fetch(API_BASE_URL);
+                if (!response.ok) throw new Error('Veriler çekilemedi.');
+                const cards = await response.ok ? await response.json() : [];
+                renderCards(cards);
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Kartları DOM'a Basma Fonksiyonu
+        function renderCards(cards) {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+
+            if (cards.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1/-1; padding: 3rem; text-align: center; color: var(--text-secondary); border: 1px dashed var(--border);">Sistemde kayıtlı futbol motoru kartı bulunamadı.</div>`;
+                return;
+            }
+
+            cards.forEach(card => {
+                const cardEl = document.createElement('article');
+                cardEl.className = 'player-card';
+                cardEl.innerHTML = `
+                    <div class="card-header-zone">
+                        <div class="overall-badge">${card.overall}</div>
+                        <div class="meta-zone">
+                            <div class="info-label">ID: #${card.id}</div>
+                            <div class="player-age">${card.age} Yaşında</div>
+                        </div>
+                    </div>
+                    <div class="card-body-zone">
+                        <h3 class="player-name">${card.fullName}</h3>
+                        <div class="info-row">
+                            <span class="info-label">Kulüp</span>
+                            <span class="info-value">${card.club || 'Serbest'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Ülke</span>
+                            <span class="info-value">${card.nation}</span>
+                        </div>
+                    </div>
+                    <div class="card-actions-zone">
+                        <button class="btn btn-secondary" style="border-color: var(--border-focus);" onclick="editCard(${card.id}, '${card.fullName.replace(/'/g, "\\'")}', ${card.age}, ${card.overall}, '${card.nation.replace(/'/g, "\\'")}', '${card.club.replace(/'/g, "\\'")}')">Düzenle</button>
+                        <button class="btn btn-secondary" style="color: var(--error); border-color: rgba(239,68,68,0.2);" onclick="deleteCard(${card.id})">Sil</button>
+                    </div>
+                `;
+                container.appendChild(cardEl);
+            });
+        }
+
+        // Yeni Kart Kaydetme veya Güncelleme Motoru
+        async function saveCard() {
+            const id = document.getElementById('cardId').value;
+            const fullName = document.getElementById('fullName').value;
+            const age = parseInt(document.getElementById('age').value);
+            const overall = parseInt(document.getElementById('overall').value);
+            const nation = document.getElementById('nation').value;
+            const club = document.getElementById('club').value;
+
+            const payload = { fullName, age, overall, nation, club };
+            
+            const url = id ? `${API_BASE_URL}/${id}` : API_BASE_URL;
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    showToast(id ? 'Kart başarıyla güncellendi.' : 'Yeni oyuncu kartı sisteme işlendi.', 'success');
+                    resetForm();
+                    loadAllCards();
+                } else {
+                    throw new Error('Kayıt işlemi sırasında doğrulama veya sunucu hatası oluştu.');
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Düzenleme Moduna Geçiş
+        function editCard(id, fullName, age, overall, nation, club) {
+            document.getElementById('cardId').value = id;
+            document.getElementById('fullName').value = fullName;
+            document.getElementById('age').value = age;
+            document.getElementById('overall').value = overall;
+            document.getElementById('nation').value = nation;
+            document.getElementById('club').value = club;
+
+            document.getElementById('submitBtn').innerText = "Değişiklikleri Kaydet";
+            document.getElementById('cancelEditBtn').style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetForm() {
+            document.getElementById('cardId').value = '';
+            document.getElementById('cardForm').reset();
+            document.getElementById('submitBtn').innerText = "Kayıt Motorunu Çalıştır";
+            document.getElementById('cancelEditBtn').style.display = "none";
+        }
+
+        document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
+
+        // Kart Silme Motoru
+        async function deleteCard(id) {
+            if (!confirm(`ID #${id} olan kartı kalıcı olarak silmek istediğinize emin misiniz?`)) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showToast('Kart başarıyla sistemden kaldırıldı.', 'success');
+                    loadAllCards();
+                } else {
+                    throw new Error('Silme işlemi başarısız.');
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Canlı İsim Arama Mekanizması
+        async function searchCards() {
+            const query = document.getElementById('searchName').value.trim();
+            if (query.length === 0) {
+                loadAllCards();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/search?name=${encodeURIComponent(query)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    renderCards(data);
+                }
+            } catch (error) {
+                console.error("Arama hatası:", error);
+            }
+        }
+
+        // Hızlı Filtre Grupları Yönetimi
+        async function applyQuickFilter() {
+            const mode = document.getElementById('filterMode').value;
+            let url = API_BASE_URL;
+
+            if (mode === 'TOP') url = `${API_BASE_URL}/top?min=85`;
+            else if (mode === 'TURKEY') url = `${API_BASE_URL}/nation/Turkey`;
+            else if (mode === 'REAL') url = `${API_BASE_URL}/club/Real Madrid`;
+
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    renderCards(data);
+                }
+            } catch (error) {
+                showToast('Filtre uygulanırken hata oluştu.', 'error');
+            }
+        }
+
+        // Özel JPQL Sorgusunu Çalıştıran Yaş Ortalaması Fonksiyonu
+        async function fetchAverageAge() {
+            const clubName = document.getElementById('analytisClubName').value.trim();
+            if (!clubName) {
+                showToast('Lütfen bir kulüp ismi girin.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/club/${encodeURIComponent(clubName)}/average-age`);
+                if (response.ok) {
+                    const age = await response.json();
+                    const widget = document.getElementById('analyticsResult');
+                    const output = document.getElementById('analyticsOutput');
+                    
+                    widget.style.display = 'block';
+                    output.innerHTML = `<strong>${clubName}</strong> kadrosunun yaş ortalaması: <span style="color: var(--accent); font-size: 1.2rem; font-family: var(--font-display);">${age.toFixed(2)}</span>`;
+                }
+            } catch (error) {
+                showToast('Yaş ortalaması alınamadı.', 'error');
+            }
+        }
+
+        // Gelişmiş Toast Geribildirim Sistemi (Kılavuz Kuralları)
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            if (type === 'error') toast.style.borderColor = 'var(--error)';
+            
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+
+            // Başarılı bildirimler otomatik kapanır, hatalar ekranda dikkat çeker (Kılavuz kuralı)
+            if (type === 'success') {
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
+            } else {
+                toast.innerHTML += `<button onclick="this.parentElement.remove()" style="background:transparent; border:none; color:var(--text-primary); cursor:pointer; font-weight:bold;">[X]</button>`;
+            }
+        }
+
+        // Sayfa İlk Açıldığında Verileri Yükle
+        window.addEventListener('DOMContentLoaded', loadAllCards);
+    </script>
+</body>
+</html>
